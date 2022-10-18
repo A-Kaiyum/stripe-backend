@@ -20,3 +20,4 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::post('make-payment', [StripePaymentController::class, 'makePayment']);
+Route::post('make-payment-mobile', [StripePaymentController::class, 'makePaymentMobile']);
