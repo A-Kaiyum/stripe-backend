@@ -13,7 +13,7 @@ class StripePaymentController extends Controller
     public function makePayment(Request $request)
     {
 
-        Stripe::setApiKey('sk_test_51LtSJLGiXzKYuOYkMt700dVTWeL5RG1a0e870EDiLRDuzgOkT7S0ylsMKUD2epCiLS5CvZD4imEFR7xDwuiWp7xZ00gQ3CCxeJ');
+        Stripe::setApiKey(env("STRIPE_SECRET_KEY"));
 
         try {
             $paymentIntent = PaymentIntent::create([
@@ -35,5 +35,37 @@ class StripePaymentController extends Controller
 
             return response()->json(['error' => $e->getMessage()]);
         }
+    }
+
+
+    public function makePaymentMobile(Request $request)
+    {
+        \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+        // Use an existing Customer ID if this is a returning customer.
+        $customer = \Stripe\Customer::create();
+        $ephemeralKey = \Stripe\EphemeralKey::create(
+            [
+                'customer' => $customer->id,
+            ],
+            [
+                'stripe_version' => '2022-08-01',
+            ]
+        );
+        $paymentIntent = \Stripe\PaymentIntent::create([
+            'amount' => 5000 * 100,
+            'currency' => 'bdt',
+            'customer' => $customer->id,
+            'automatic_payment_methods' => [
+                'enabled' => 'true',
+            ],
+        ]);
+
+        return response()->json([
+            'paymentIntent' => $paymentIntent->client_secret,
+            'ephemeralKey' => $ephemeralKey->secret,
+            'customer' => $customer->id,
+            'status' => 200,
+            'publishableKey' => env('STRIPE_PUBLIC_KEY')
+        ]);
     }
 }
